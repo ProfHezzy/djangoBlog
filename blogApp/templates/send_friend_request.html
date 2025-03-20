@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="friend-request-container">
+    <h2>Search for Friends</h2>
+    <input type="text" id="searchInput" placeholder="Search by username">
+    <div id="searchResults"></div>
+</div>
+
+<h2>Pending Friend Requests</h2>
+<div id="pendingFriendRequests">
+    {% for request in pending_requests %}
+        <div class="friend-request">
+            <span>{{ request.from_user.username }}</span>
+            <button onclick="acceptFriendRequest({{ request.id }})">Accept</button>
+            <button onclick="rejectFriendRequest({{ request.id }})">Reject</button>
+        </div>
+    {% endfor %}
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    $(document).ready(function () {
+        $("#searchInput").on("input", function () {
+            let query = $(this).val().trim();
+
+            if (query.length > 1) {
+                $.ajax({
+                    url: "/search_friends/",
+                    method: "GET",
+                    data: { q: query },
+                    success: function (response) {
+                        let resultsDiv = $("#searchResults");
+                        resultsDiv.empty();
+
+                        if (response.users.length > 0) {
+                            response.users.forEach(user => {
+                                resultsDiv.append(
+                                    `<div>
+                                        <a href="/profile/${user.username}/">${user.username}</a>
+                                    </div>`
+                                );
+                            });
+                        } else {
+                            resultsDiv.html("<p>No users found</p>");
+                        }
+                    },
+                    error: function () {
+                        $("#searchResults").html("<p>Error fetching users</p>");
+                    }
+                });
+            } else {
+                $("#searchResults").empty();
+            }
+        });
+    });
+</script>
+{% endblock %}

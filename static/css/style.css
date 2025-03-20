@@ -1,0 +1,30 @@
+/* Custom Styles for Profile Page */
+.profile-img {
+    transition: transform 0.3s ease;
+    position: relative;
+    overflow: hidden;
+
+}
+
+.profile-img:hover {
+    transform: scale(1.1);
+}
+
+.glass-card {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+.btn-custom {
+    background: #f8d210;
+    color: #121212;
+    transition: all 0.3s ease;
+}
+
+.btn-custom:hover {
+    background: #ffcc00;
+    transform: scale(1.05);
+}

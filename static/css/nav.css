@@ -1,0 +1,136 @@
+body {
+    font-family: 'Poppins', sans-serif;
+    background-color: #121212;
+    color: #fff;
+    margin: 0;
+    padding: 0;
+}
+
+.sidebar {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 250px;
+    height: 100%;
+    background: #1e1e1e;
+    padding-top: 20px;
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.3);
+    transition: width 0.3s ease, transform 0.3s ease;
+    z-index: 99;
+}
+
+.sidebar.closed {
+    width: 60px;
+}
+
+.sidebar a {
+    display: flex;
+    align-items: center;
+    padding: 15px;
+    text-decoration: none;
+    color: #f8d210;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+}
+
+.sidebar a:hover {
+    background: #333;
+}
+
+.sidebar.closed a {
+    justify-content: center;
+}
+
+.sidebar.closed a span {
+    display: none;
+}
+
+.toggle-btn {
+    position: fixed; /* Keep it fixed on mobile */
+    left: 200px;
+    top: 20px;
+    background: #ffcc00;
+    padding: 8px 12px;
+    border-radius: 50%;
+    cursor: pointer;
+    color: #121212;
+    font-weight: bold;
+    z-index: 9999; /* Ensure it appears above everything */
+}
+
+/* Adjust sidebar on small screens */
+@media (max-width: 768px) {
+    .sidebar {
+        position: fixed;
+        left: 0;
+        top: 0;
+        width: 250px;
+        height: 100%;
+        transform: translateX(-100%);
+        transition: transform 0.3s ease;
+        z-index: 999;
+    }
+
+    .sidebar.open {
+        transform: translateX(0);
+    }
+
+    /* Keep toggle button always visible */
+    .toggle-btn {
+        left: 20px; /* Keep it aligned */
+        top: 20px;
+        z-index: 1000; /* Ensure it stays above the sidebar */
+    }
+
+    /* Move toggle button when sidebar is open */
+    .sidebar.open + .toggle-btn {
+        left: 270px; /* Push to the right when sidebar opens */
+    }
+}
+
+/* Navbar Styles */
+.navbar {
+    background: #1e1e1e;
+    padding: 15px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+.navbar-brand {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #f8d210 !important;
+}
+
+.navbar-nav {
+    display: flex;
+    align-items: center;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.navbar-nav .nav-item {
+    margin-left: 15px;
+}
+
+.navbar-nav .nav-link {
+    color: #f8d210 !important;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.navbar-nav .nav-link:hover {
+    color: #ffcc00 !important;
+}
+
+/* Toggle Button for Mobile */
+.navbar-toggler {
+    border: none;
+    background: transparent;
+    padding: 0.5rem;
+}
+
+.navbar-toggler-icon {
+    filter: invert(1); /* Ensure the icon is visible on dark background */
+}

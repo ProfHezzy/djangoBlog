@@ -1,0 +1,175 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="search-friends-container">
+    <h2 class="search-title">Search for Friends</h2>
+    <div class="search-box">
+        <input type="text" id="searchInput" placeholder="Enter username or email" class="search-input">
+        <div class="search-icon">
+            <i class="fas fa-search"></i> <!-- Font Awesome search icon -->
+        </div>
+    </div>
+    <div id="searchResults" class="search-results"></div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    $(document).ready(function () {
+        $("#searchInput").on("input", function () {
+            let query = $(this).val().trim();
+
+            if (query.length > 0) {
+                // Show loading spinner
+                $("#searchResults").html('<div class="loading-spinner"><i class="fas fa-spinner fa-spin"></i></div>');
+
+                $.ajax({
+                    url: "/search_friends_ajax/",
+                    method: "GET",
+                    data: { q: query },
+                    dataType: "json",
+                    success: function (response) {
+                        let resultsDiv = $("#searchResults");
+                        resultsDiv.empty();
+
+                        if (response.users.length > 0) {
+                            response.users.forEach(user => {
+                                resultsDiv.append(
+                                    `<div class="user-result">
+                                        <a href="/profile/${user.username}/" class="user-link">
+                                            <img src="${user.profile_picture}" alt="${user.username}" class="user-avatar">
+                                            <span class="user-name">${user.username}</span>
+                                        </a>
+                                    </div>`
+                                );
+                            });
+                        } else {
+                            resultsDiv.html('<p class="no-results">No users found</p>');
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        console.error("AJAX Error:", xhr.responseText);
+                        $("#searchResults").html('<p class="error-message">Error fetching users. Please try again.</p>');
+                    }
+                });
+            } else {
+                $("#searchResults").empty();
+            }
+        });
+    });
+</script>
+
+<style>
+    /* General Styling */
+.search-friends-container {
+    max-width: 500px;
+    margin: 50px auto;
+    padding: 20px;
+    background: #ffffff;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
+    text-align: center;
+}
+
+/* Search Title */
+.search-title {
+    font-size: 24px;
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 20px;
+}
+
+/* Search Box */
+.search-box {
+    position: relative;
+    width: 100%;
+}
+
+.search-input {
+    width: 100%;
+    padding: 12px 40px 12px 15px;
+    font-size: 16px;
+    border: 2px solid #ddd;
+    border-radius: 25px;
+    outline: none;
+    background-color: #fff;  /* Ensuring background is WHITE */
+    color: #333;  /* Ensuring text is DARK for visibility */
+    transition: 0.3s;
+}
+
+.search-input::placeholder {
+    color: #888;  /* Light gray placeholder text */
+}
+
+.search-input:focus {
+    border-color: #007bff;
+    box-shadow: 0px 0px 5px rgba(0, 123, 255, 0.5);
+}
+
+/* Search Icon */
+.search-icon {
+    position: absolute;
+    top: 50%;
+    right: 15px;
+    transform: translateY(-50%);
+    font-size: 18px;
+    color: #888;
+}
+
+/* Search Results */
+.search-results {
+    margin-top: 15px;
+    max-height: 300px;
+    overflow-y: auto;
+    border-radius: 8px;
+    padding: 10px;
+    background: #f9f9f9;
+}
+
+/* Individual User Result */
+.user-result {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
+    margin-bottom: 8px;
+    transition: 0.3s;
+}
+
+.user-result:hover {
+    background: #f1f1f1;
+}
+
+/* Profile Picture */
+.user-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    margin-right: 12px;
+    border: 2px solid #007bff;
+}
+
+/* Username */
+.user-name {
+    font-size: 16px;
+    font-weight: 500;
+    color: #333;
+}
+
+/* No Results */
+.no-results {
+    color: #888;
+    font-size: 14px;
+}
+
+/* Loading Spinner */
+.loading-spinner {
+    font-size: 18px;
+    color: #007bff;
+    margin-top: 10px;
+}
+
+
+</style>
+{% endblock %}

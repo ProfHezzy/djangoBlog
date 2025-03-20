@@ -1,0 +1,127 @@
+/* Reset styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* Body Styling */
+body {
+    background: #f4f4f4;
+    font-family: 'Poppins', sans-serif;
+    color: #333;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 20px;
+}
+
+/* Blog Container */
+.blog-container {
+    background: #fff;
+    max-width: 850px;
+    width: 100%;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+/* Blog Title */
+.blog-title {
+    font-size: 2.4rem;
+    font-weight: bold;
+    color: #222;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+/* Blog Image */
+.blog-image {
+    width: 100%;
+    border-radius: 10px;
+    margin-bottom: 20px;
+}
+
+/* Blog Content */
+.blog-content {
+    font-size: 1.2rem;
+    line-height: 1.8;
+    text-align: justify;
+    color: #444;
+}
+
+/* Like Button */
+.like-button {
+    display: block;
+    width: fit-content;
+    margin: 20px auto;
+    background: #007bff;
+    color: white;
+    padding: 12px 24px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-size: 1.2rem;
+    font-weight: bold;
+    transition: 0.3s ease;
+}
+
+.like-button:hover {
+    background: #0056b3;
+}
+
+/* Comment Section */
+.comment-section {
+    margin-top: 40px;
+}
+
+.comment-section h3 {
+    font-size: 1.5rem;
+    color: #222;
+    margin-bottom: 15px;
+}
+
+/* Comment List */
+.comment {
+    background: #f9f9f9;
+    padding: 12px;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    font-size: 1.1rem;
+    border-left: 4px solid #007bff;
+}
+
+/* Comment Input */
+.comment-input {
+    width: 100%;
+    padding: 12px;
+    font-size: 1rem;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    margin-top: 10px;
+}
+
+.comment-button {
+    display: inline-block;
+    background: #28a745;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 6px;
+    font-size: 1.1rem;
+    border: none;
+    cursor: pointer;
+    margin-top: 10px;
+    transition: 0.3s ease;
+}
+
+.comment-button:hover {
+    background: #218838;
+}
+
+/* Footer */
+footer {
+    margin-top: 20px;
+    text-align: center;
+    font-size: 1rem;
+    color: #666;
+}

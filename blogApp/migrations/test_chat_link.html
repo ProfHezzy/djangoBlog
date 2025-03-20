@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Chat Link</title>
+</head>
+<body>
+
+    {% if chat_user.username and chat_user.username != "" %}
+        <a href="{% url 'blogApp:chat_page' chat_user.username %}" class="btn btn-primary">Message</a>
+    {% else %}
+        <p>User has no valid username.</p>
+    {% endif %}
+
+    <p>Debugging: {{ chat_user|pprint }}</p>
+
+</body>
+</html>

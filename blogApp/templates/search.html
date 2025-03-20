@@ -1,0 +1,44 @@
+<form method="GET" action="{% url 'search_users' %}">
+    <input type="text" name="q" placeholder="Search by username or email">
+    <button type="submit">Search</button>
+</form>
+
+<div id="search-results"></div>
+
+<script>
+document.querySelector("form").addEventListener("submit", function(event) {
+    event.preventDefault();
+    let query = document.querySelector("input[name='q']").value;
+
+    fetch(`/search_users/?q=${query}`)
+        .then(response => response.json())
+        .then(data => {
+            let resultsDiv = document.getElementById("search-results");
+            resultsDiv.innerHTML = "";  
+
+            data.users.forEach(user => {
+                let userDiv = document.createElement("div");
+                userDiv.innerHTML = `
+                    <a href="/profile/${user.username}/">${user.username} (${user.email})</a>
+                    ${user.is_friend ? "" : `<button onclick="sendFriendRequest('${user.username}')">Send Request</button>`}
+                `;
+                resultsDiv.appendChild(userDiv);
+            });
+        });
+});
+
+function sendFriendRequest(username) {
+    fetch("/send_friend_request/", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": "{{ csrf_token }}",
+        },
+        body: JSON.stringify({ username: username }),
+    })
+    .then(response => response.json())
+    .then(data => {
+        alert(data.message);
+    });
+}
+</script>

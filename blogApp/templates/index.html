@@ -1,0 +1,197 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load custom_filters %}
+
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        color: #fff;
+    }
+    .carousel-item img {
+        height: 400px;
+        object-fit: cover;
+    }
+    .blog-card {
+        border: none;
+        border-radius: 10px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .blog-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+    }
+    .user-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        margin-right: 10px;
+    }
+    .blog-head {
+        padding: 15px;
+        background-color: #343a40; /* Dark background for the user info section */
+        border-radius: 10px 10px 0 0;
+    }
+    .blog-head a {
+        color: #fff; /* White text for the username */
+        text-decoration: none;
+        font-weight: bold;
+    }
+    .blog-head a:hover {
+        text-decoration: underline;
+    }
+    .post-time {
+        color: #adb5bd; /* Light gray for the timestamp */
+        font-size: 0.9rem;
+    }
+    .card-body {
+        padding: 20px;
+    }
+    .card-title {
+        font-size: 1.5rem;
+        font-weight: bold;
+        margin-bottom: 10px;
+    }
+    .card-text {
+        font-size: 1rem;
+        color: #555;
+        margin-bottom: 15px;
+    }
+    .btn-primary {
+        background-color: #007bff;
+        border-color: #007bff;
+    }
+    .btn-primary:hover {
+        background-color: #0056b3;
+        border-color: #004085;
+    }
+    .post-time {
+        font-size: 0.9rem;
+        color: #777;
+        margin-left: 10px;
+    }
+    .user-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        margin-right: 10px;
+    }
+</style>
+
+{% block title %}HezzyBlog{% endblock %}
+{% block content %}
+    <!-- Hero Section -->
+    <div id="heroCarousel" class="carousel slide hero-section" data-bs-ride="carousel">
+        <div class="carousel-inner">
+            <div class="carousel-item active">
+                <div class="overlay"></div>
+                <img src="{% static 'images/nature1.jpg' %}" class="d-block w-100" alt="Tech">
+                <div class="carousel-caption">
+                    <h2>Explore the Future of Technology</h2>
+                    <p>Stay updated with the latest trends in Tech, AI, and more.</p>
+                </div>
+            </div>
+            <div class="carousel-item">
+                <div class="overlay"></div>
+                <img src="{% static 'images/nature2.jpg' %}" class="d-block w-100" alt="Lifestyle">
+                <div class="carousel-caption">
+                    <h2>Live a Smarter Lifestyle</h2>
+                    <p>Learn productivity hacks, self-improvement, and wellness tips.</p>
+                </div>
+            </div>
+            <div class="carousel-item">
+                <div class="overlay"></div>
+                <img src="{% static 'images/nature3.jpg' %}" class="d-block w-100" alt="Nature">
+                <div class="carousel-caption">
+                    <h2>Connect with Nature</h2>
+                    <p>Discover the beauty of the world around us.</p>
+                </div>
+            </div>
+        </div>
+        <!-- Carousel Controls -->
+        <button class="carousel-control-prev" type="button" data-bs-target="#heroCarousel" data-bs-slide="prev">
+            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+        </button>
+        <button class="carousel-control-next" type="button" data-bs-target="#heroCarousel" data-bs-slide="next">
+            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+        </button>
+    </div>
+
+    <!-- Blog Posts Section -->
+    <div class="container mt-5">
+        <h2 class="mb-4 text-center">Latest Blog Posts</h2>
+        <div class="row">
+            {% for post in user_posts %}
+                <div class="col-md-6 mb-4">
+                    <div class="card blog-card">
+                        <!-- User Info Section -->
+                        <div class="blog-head">
+                            <div class="d-flex align-items-center justify-content-between">
+                                <div class="d-flex align-items-center">
+                                    <!-- Profile Image -->
+                                    {% if post.author.profile.avatar %}
+                                        <img src="{{ post.author.profile.avatar.url }}" class="user-avatar" alt="{{ post.author.username }}">
+                                    {% else %}
+                                        <img src="{% static 'images/default-avatar.png' %}" class="user-avatar" alt="Default Avatar">
+                                    {% endif %}
+                                    <!-- Username and Timestamp -->
+                                    <div>
+                                        <a style="color: #fff;" href="{% url 'user_profile' post.author.username %}">{{ post.author.username }}</a>
+                                        <div style="color: #fff;" class="post-time">{{ post.created_at|timesince }} ago</div>
+                                    </div>
+                                </div>
+                                <!-- Follow/Unfollow Button -->
+                                {% if request.user.is_authenticated and request.user != post.author %}
+                                    {% if follow_status|get_item:post.author.id %}
+                                        <a href="{% url 'unfollow_user' post.author.username %}" class="btn btn-danger btn-sm">Unfollow</a>
+                                    {% else %}
+                                        <a href="{% url 'follow_user' post.author.username %}" class="btn btn-primary btn-sm">Follow</a>
+                                    {% endif %}
+                                {% endif %}
+                            </div>
+                        </div>
+        
+                        <!-- Post Image -->
+                        {% if post.image %}
+                            <img src="{{ post.image.url }}" class="card-img-top" alt="{{ post.title }}">
+                        {% endif %}
+        
+                        <!-- Post Title and Content -->
+                        <div class="card-body">
+                            <h5 class="card-title">{{ post.title }}</h5>
+                            <p class="card-text">{{ post.content|truncatewords:20 }}</p>
+                            <!-- Read More Button -->
+                            <div class="text-end">
+                                <a href="{% url 'blog_detail' post.id %}" class="btn btn-primary">Read More</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% empty %}
+                <p class="text-center">No blog posts available.</p>
+            {% endfor %}
+        </div>
+
+    <!-- Pagination -->
+    <div class="container mt-4">
+        <nav aria-label="Page navigation example">
+            <ul class="pagination">
+                <li class="page-item">
+                    <a class="page-link" href="?page=1" aria-label="Previous">
+                        <span aria-hidden="true">&laquo;</span>
+                    </a>
+                </li>
+                {% for num in user_posts.paginator.page_range %}
+                    <li class="page-item {% if user_posts.number == num %}active{% endif %}">
+                        <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                    </li>
+                {% endfor %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ user_posts.paginator.num_pages }}" aria-label="Next">
+                        <span aria-hidden="true">&raquo;</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+{% endblock %}

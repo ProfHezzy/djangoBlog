@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card p-4">
+                <h2 class="text-center mb-4 text-primary">📝 Create a New Post</h2>
+                
+                <form method="POST" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label for="title" class="form-label fw-bold">Post Title</label>
+                        <input type="text" class="form-control shadow-sm" id="title" name="title" placeholder="Enter post title" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="category" class="form-label fw-bold">Category</label>
+                        <select class="form-select shadow-sm" id="category" name="category">
+                            <option value="Technology">Technology</option>
+                            <option value="Lifestyle">Lifestyle</option>
+                            <option value="Education">Education</option>
+                            <option value="Business">Business</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="image" class="form-label fw-bold">Upload Image</label>
+                        <input type="file" class="form-control shadow-sm" id="image" name="image">
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="content" class="form-label fw-bold">Post Content</label>
+                        <textarea class="form-control shadow-sm" id="content" name="content" rows="6" placeholder="Write your post..." required></textarea>
+                    </div>
+
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary btn-lg">🚀 Publish Post</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Custom Styles -->
+<style>
+    .card {
+        border-radius: 12px;
+        box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.1);
+        transition: transform 0.3s ease-in-out;
+    }
+
+    .card:hover {
+        transform: scale(1.02);
+    }
+
+    .form-control, .form-select {
+        border-radius: 8px;
+    }
+
+    button {
+        transition: all 0.3s ease-in-out;
+    }
+
+    button:hover {
+        background: #0d6efd;
+        transform: translateY(-2px);
+    }
+</style>
+{% endblock %}

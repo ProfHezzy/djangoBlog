@@ -1,0 +1,51 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ post.title }}</title>
+    <link rel="stylesheet" href="{% static 'css/blog_details.css' %}">
+</head>
+<body>
+
+    <div class="blog-container">
+        <h1 class="blog-title">{{ post.title }}</h1>
+
+        {% if post.image %}
+            <img src="{{ post.image.url }}" alt="{{ post.title }}" class="blog-image">
+        {% endif %}
+
+        <p class="blog-content">{{ post.content }}</p>
+
+        <!-- Like Button -->
+        <a href="{% url 'like_post' post.id %}" class="like-button">❤️ Like ({{ post.total_likes }})</a>
+
+        <!-- Comments Section -->
+        <div class="comment-section">
+            <h3>Comments ({{ post.comments.count }})</h3>
+            {% for comment in post.comments.all %}
+                <div class="comment">
+                    <strong>{{ comment.user.username }}</strong>: {{ comment.content }}
+                    <small style="display:block; font-size: 0.9rem; color: gray;">{{ comment.created_at }}</small>
+                </div>
+            {% empty %}
+                <p>No comments yet. Be the first to comment!</p>
+            {% endfor %}
+
+            {% if user.is_authenticated %}
+                <form action="{% url 'add_comment' post.id %}" method="POST">
+                    {% csrf_token %}
+                    <textarea name="content" class="comment-input" placeholder="Write a comment..." required></textarea>
+                    <button type="submit" class="comment-button">Post Comment</button>
+                </form>
+            {% else %}
+                <p><a href="{% url 'login' %}">Log in</a> to comment.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    
+    
+</body>
+</html>

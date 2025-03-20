@@ -1,0 +1,92 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+    <!-- Cover Image Section -->
+    <div class="relative w-full h-60 bg-gray-800 overflow-visible">
+        {% if cover_image %}
+            <img src="{{ cover_pics }}" alt="{{ user.username }}'s banner" class="w-full h-full object-cover">
+        {% else %}
+            <img src="{% static 'images/cover-default.jpg' %}" alt="Default Cover Image" class="w-full h-full object-cover">
+        {% endif %}
+        <!-- Profile Picture -->
+        <div class="absolute left-1/2 transform -translate-x-1/2 translate-y-1/2 bottom-0">
+            <img src="{{ user.profile.profile_picture.url|default:'/static/images/default.jpg' }}" 
+                 class="w-32 h-32 rounded-full border-4 border-yellow-400 shadow-lg profile-img">
+        </div>
+    </div>
+
+    <!-- User Info Section -->
+    <div class="w-full md:max-w-4xl mx-auto mt-20 p-6 bg-gray-700 rounded-lg shadow-lg text-center">
+        <h2 class="text-3xl font-bold text-yellow-400">{{ profile_user.username }}</h2>
+        <p class="text-gray-300 mt-2">{{ user.email }}</p>
+        <p class="text-gray-300">{{ user.get_full_name }}</p>
+        <!-- Message Button -->
+        {% if user.username != profile_user.username %}
+            <a href="{% url 'chat_page' username=profile_user.username %}" 
+               class="inline-block mt-4 px-6 py-2 bg-yellow-400 text-gray-900 font-semibold rounded-lg hover:bg-yellow-500 transition duration-300">
+                Message {{ profile_user.username }}
+            </a>
+        {% endif %}
+        <!-- Admin/Moderator Badge -->
+        <span class="inline-block mt-4 px-4 py-1 bg-gray-600 text-yellow-400 text-sm font-semibold rounded-full">
+            {% if user.is_staff %} Admin {% else %} Moderator {% endif %}
+        </span>
+    </div>
+
+    <!-- Stats Section -->
+    <div class="max-w-4xl mx-auto mt-8 grid grid-cols-2 md:grid-cols-5 gap-4">
+        <!-- Posts -->
+        <div class="p-4 bg-gray-700 rounded-lg shadow-lg text-center hover:bg-gray-600 transition duration-300">
+            <h3 class="text-lg font-semibold text-yellow-400">Posts</h3>
+            <p class="text-2xl font-bold text-white">{{ user.blogpost_set.count }}</p>
+        </div>
+        <!-- Likes -->
+        <div class="p-4 bg-gray-700 rounded-lg shadow-lg text-center hover:bg-gray-600 transition duration-300">
+            <h3 class="text-lg font-semibold text-yellow-400">Likes</h3>
+            <p class="text-2xl font-bold text-white">{{ total_likes }}</p>
+        </div>
+        <!-- Comments -->
+        <div class="p-4 bg-gray-700 rounded-lg shadow-lg text-center hover:bg-gray-600 transition duration-300">
+            <h3 class="text-lg font-semibold text-yellow-400">Comments</h3>
+            <p class="text-2xl font-bold text-white">{{ total_comments }}</p>
+        </div>
+        <!-- Followers -->
+        <div class="p-4 bg-gray-700 rounded-lg shadow-lg text-center hover:bg-gray-600 transition duration-300">
+            <h3 class="text-lg font-semibold text-yellow-400">Followers</h3>
+            <p class="text-2xl font-bold text-white">{{ total_followers }}</p>
+        </div>
+        <!-- Following -->
+        <div class="p-4 bg-gray-700 rounded-lg shadow-lg text-center hover:bg-gray-600 transition duration-300">
+            <h3 class="text-lg font-semibold text-yellow-400">Following</h3>
+            <p class="text-2xl font-bold text-white">{{ total_following }}</p>
+        </div>
+    </div>
+
+    <!-- Posts Section -->
+    <div class="max-w-4xl mx-auto mt-8 p-6 bg-gray-700 rounded-lg shadow-lg">
+        <h3 class="text-2xl font-bold text-yellow-400 mb-6">My Posts</h3>
+        {% for post in user.blogpost_set.all %}
+            <div class="p-4 mb-4 bg-gray-600 rounded-lg shadow-md flex justify-between items-center hover:bg-gray-500 transition duration-300">
+                <div>
+                    <h4 class="text-lg font-semibold text-white">{{ post.title }}</h4>
+                    <p class="text-sm text-gray-300">{{ post.created_at|date:"M d, Y" }}</p>
+                </div>
+                <a href="{% url 'update_post' post.id %}" 
+                   class="px-4 py-2 bg-yellow-400 text-gray-900 font-semibold rounded-lg hover:bg-yellow-500 transition duration-300">
+                    Edit
+                </a>
+            </div>
+        {% empty %}
+            <p class="text-gray-300">You have not created any posts yet.</p>
+        {% endfor %}
+    </div>
+
+    <!-- Logout Button -->
+    <div class="max-w-4xl mx-auto mt-8 flex justify-end">
+        <a href="{% url 'logout' %}" 
+           class="px-6 py-2 bg-red-500 text-white font-semibold rounded-lg hover:bg-red-600 transition duration-300">
+            Logout
+        </a>
+    </div>
+{% endblock %}

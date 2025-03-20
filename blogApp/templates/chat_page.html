@@ -1,0 +1,569 @@
+{% extends 'base.html' %}
+
+{% block content %}
+{% load static %}
+
+<div class="friends-chat-container">
+    <div class="friends-list">
+        <h2 class="friends-list-title">Recent Chats</h2>
+        <ul class="friends-list-items">
+            {% for friend_data in friends %}
+                <li>
+                    <a href="{% url 'chat_page' friend_data.friend.username %}">
+                        {% if friend_data.friend.profile and friend_data.friend.profile.profile_picture %}
+                            <img src="{{ friend_data.friend.profile.profile_picture.url }}" 
+                                 alt="{{ friend_data.friend.username }}" class="friend-avatar">
+                        {% else %}
+                            <img src="{% static 'images/default_profile.png' %}" 
+                                 alt="{{ friend_data.friend.username }}" class="friend-avatar">
+                        {% endif %}
+                        
+                        <strong>{{ friend_data.friend.username }}</strong>
+                        <small class="recent-message">
+                            {{ friend_data.recent_message }}
+                        </small>
+                    </a>
+                </li>
+            {% empty %}
+                <li>No recent chats</li>
+            {% endfor %}
+        </ul>
+    </div>
+    
+    
+    
+
+    <!-- Chat Window -->
+    <div class="chat-container">
+        <div class="chat-header">
+            <div class="user-info">
+                <img src="{{ chat_user.profile.profile_picture.url|default:'/static/images/default.jpg' }}" alt="Profile Picture" class="profile-pic">
+                <span class="username">{{ chat_user.username }}</span>
+            </div>
+        </div>
+
+        <div id="chat-box" class="chat-box">
+            {% for message in messages %}
+                <div class="message {% if message.sender == request.user %}sent{% else %}received{% endif %}" data-message-id="{{ message.id }}">
+                    <div class="message-content">
+                        <span>{{ message.content }}</span>
+                        <small>{{ message.timestamp|date:"M d, Y, H:i" }}</small>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+
+        <div id="typingIndicator" style="display: none;">
+            {{ chat_user.username }} is typing...
+        </div>
+
+        <div class="chat-input">
+            <input type="text" id="messageInput" placeholder="Enter your message">
+            <button id="sendButton">Send</button>
+        </div>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    let offset = 0;
+    const limit = 10;
+    let initialLoadComplete = false;
+    let isScrolling = false; // Flag to prevent double scroll
+
+    function loadMessages() {
+    const recipientUsername = "{{ chat_user.username }}";
+    $.ajax({
+        url: `/get-messages/${recipientUsername}/`,
+        method: "GET",
+        data: {
+            offset: offset,
+            limit: limit,
+        },
+        success: function (response) {
+            if (response.success) {
+                const chatBox = $("#chat-box");
+                const currentUser = "{{ request.user.username }}";
+
+                // Append each message to the chat box
+                response.messages.forEach((message) => {
+                    const messageClass = message.sender === currentUser ? "sent" : "received";
+                    const isDeleted = message.deleted; // Check if the message is deleted
+
+                    const messageHtml = `
+                        <div class="message ${messageClass}" id="message-${message.id}">
+                            <div class="message-content">
+                                ${isDeleted ? '<em>Message Deleted</em>' : `<span>${message.content}</span>`}
+                                <small>${new Date(message.timestamp).toLocaleString()}</small>
+                                ${!isDeleted ? `<button onclick="deleteMessage(${message.id})" class="delete-button">Delete</button>` : ''}
+                            </div>
+                        </div>
+                    `;
+                    chatBox.append(messageHtml);
+                });
+
+                // Update the offset for the next request
+                offset += limit;
+
+                // Scroll to bottom only if this is the initial load or the user was already at the bottom
+                if (offset === limit || isAtBottom) {
+                    setTimeout(() => scrollToBottom(true), 0);
+                }
+
+                // Show or hide the "Load More" button
+                if (!response.has_more) {
+                    $("#loadMoreButton").hide();
+                }
+            } else {
+                console.error("Error loading messages:", response.error);
+                alert("Failed to load messages. Please try again.");
+            }
+        },
+        error: function (xhr, status, error) {
+            console.error("AJAX Error:", status, error, xhr.responseText);
+            alert("Failed to load messages. Please try again.");
+        },
+    });
+}
+
+function deleteMessage(messageId) {
+    if (confirm("Are you sure you want to delete this message?")) {
+        $.ajax({
+            url: `/delete_message/${messageId}/`,
+            method: "POST",
+            data: {
+                csrfmiddlewaretoken: "{{ csrf_token }}",
+            },
+            success: function (response) {
+                if (response.success) {
+                    // Replace the message content with "Message Deleted"
+                    const messageElement = $(`#message-${messageId}`);
+                    messageElement.find(".message-content").html(`
+                        <em>Message Deleted</em>
+                        <small>${new Date().toLocaleString()}</small>
+                    `);
+                    // Remove the delete button
+                    messageElement.find(".delete-button").remove();
+                } else {
+                    alert("Error: " + response.error);
+                }
+            },
+            error: function (xhr, status, error) {
+                console.error("AJAX Error:", status, error, xhr.responseText);
+                alert("Failed to delete message. Please try again.");
+            },
+        });
+    }
+}
+
+    function fetchNewMessages() {
+        if (!initialLoadComplete) {
+            return;
+        }
+        const recipientUsername = "{{ chat_user.username }}";
+        $.ajax({
+            url: `/get-new-messages/${recipientUsername}/`,
+            method: "GET",
+            success: function (response) {
+                if (response.success && response.messages.length > 0) {
+                    const chatBox = $("#chat-box");
+                    response.messages.forEach((message) => {
+                        if ($(`#message-${message.id}`).length === 0) {
+                            const messageClass = message.sender === "{{ request.user.username }}" ? "sent" : "received";
+                            const messageHtml = `
+                                <div class="message ${messageClass}" id="message-${message.id}">
+                                    <div class="message-content">
+                                        <span>${message.content}</span>
+                                        <small>${new Date(message.timestamp).toLocaleString()}</small>
+                                    </div>
+                                </div>
+                            `;
+                            chatBox.append(messageHtml);
+                        }
+                    });
+                    scrollToBottom(true);
+                }
+            },
+            error: function (xhr, status, error) {
+                console.error("AJAX Error:", status, error, xhr.responseText);
+            },
+        });
+    }
+
+    function scrollToBottom(force = false) {
+        if(isScrolling){ //prevent double scroll
+            return;
+        }
+        const chatBox = $("#chat-box");
+        const isAtBottom = chatBox.scrollTop() + chatBox.innerHeight() >= chatBox[0].scrollHeight - 50;
+
+        if (force || isAtBottom) {
+            isScrolling = true;
+            chatBox.animate({ scrollTop: chatBox[0].scrollHeight }, 500, function(){
+                isScrolling = false;
+            });
+        }
+    }
+
+    $(document).ready(function () {
+        loadMessages();
+        setTimeout(() => scrollToBottom(true), 500);
+        setInterval(fetchNewMessages, 3000);
+    });
+
+    $("#loadMoreButton").click(function () {
+        loadMessages();
+    });
+
+    $("#sendButton").click(function () {
+        sendMessage();
+    });
+
+    $("#messageInput").keypress(function (e) {
+        if (e.which === 13) {
+            sendMessage();
+        }
+    });
+
+    function sendMessage() {
+        const messageContent = $("#messageInput").val().trim();
+        if (messageContent !== "") {
+            $.ajax({
+                url: "/send_message/",
+                method: "POST",
+                data: {
+                    csrfmiddlewaretoken: "{{ csrf_token }}",
+                    recipient: "{{ chat_user.username }}",
+                    content: messageContent,
+                },
+                success: function (response) {
+                    if (response.success) {
+                        $("#messageInput").val("");
+                        const chatBox = $("#chat-box");
+                        const messageClass = response.sender === "{{ request.user.username }}" ? "sent" : "received";
+                        const messageHtml = `
+                            <div class="message ${messageClass}">
+                                <div class="message-content">
+                                    <span>${response.content}</span>
+                                    <small>${new Date(response.timestamp).toLocaleString()}</small>
+                                </div>
+                            </div>
+                        `;
+                        chatBox.append(messageHtml);
+                        scrollToBottom(true);
+                    } else {
+                        alert("Error: " + response.error);
+                    }
+                },
+                error: function (xhr, status, error) {
+                    console.error("AJAX Error:", status, error, xhr.responseText);
+                    alert("Failed to send message. Please try again.");
+                },
+            });
+        }
+    }
+
+
+function fetchMessageUpdates() {
+    const recipientUsername = "{{ chat_user.username }}";
+    $.ajax({
+        url: `/get-message-updates/${recipientUsername}/`,
+        method: "GET",
+        success: function (response) {
+            if (response.success) {
+                const chatBox = $("#chat-box");
+                response.updates.forEach((update) => {
+                    const messageElement = $(`#message-${update.id}`);
+                    if (messageElement.length > 0 && !messageElement.find("em").length) {
+                        // Replace the message content with "Message Deleted"
+                        messageElement.find(".message-content").html(`
+                            <em>Message Deleted</em>
+                            <small>${new Date(update.timestamp).toLocaleString()}</small>
+                        `);
+                        // Remove the delete button
+                        messageElement.find(".delete-button").remove();
+                    }
+                });
+            }
+        },
+        error: function (xhr, status, error) {
+            console.error("AJAX Error:", status, error, xhr.responseText);
+        },
+    });
+}
+
+// Poll for updates every 3 seconds
+setInterval(fetchMessageUpdates, 3000);
+</script>
+
+<style>
+    /* General Page Styling */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: Arial, sans-serif;
+}
+
+/* Container Layout */
+.friends-chat-container {
+    display: flex;
+    height: 100vh;
+    background-color: #f0f2f5;
+}
+
+/* Friends List Sidebar */
+.friends-list {
+    width: 30%;
+    background-color: #fff;
+    border-right: 1px solid #ddd;
+    overflow-y: auto;
+    padding: 15px;
+}
+
+.friends-list h2 {
+    font-size: 18px;
+    color: #075e54;
+    margin-bottom: 15px;
+}
+
+.friends-list ul {
+    list-style: none;
+    padding: 0;
+}
+
+.friends-list li {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    border-bottom: 1px solid #ddd;
+    transition: 0.3s;
+}
+
+.friends-list li:hover {
+    background-color: #f1f1f1;
+}
+
+.friends-list a {
+    text-decoration: none;
+    color: #000;
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+
+.friend-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    margin-right: 10px;
+}
+
+/* Chat Window */
+.chat-container {
+    width: 70%;
+    display: flex;
+    flex-direction: column;
+    background-color: #e5ddd5;
+}
+
+.chat-header {
+    background-color: #075e54;
+    color: white;
+    padding: 15px;
+    display: flex;
+    align-items: center;
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+}
+
+.profile-pic {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    margin-right: 10px;
+}
+
+.username {
+    font-size: 16px;
+}
+
+/* Chat Box */
+.chat-box {
+    flex: 1;
+    padding: 20px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+}
+
+.message {
+    max-width: 60%;
+    padding: 10px;
+    border-radius: 10px;
+    margin-bottom: 10px;
+    position: relative;
+    font-size: 14px;
+}
+
+.sent {
+    align-self: flex-end;
+    background-color: #dcf8c6;
+    color: black;
+}
+
+.received {
+    align-self: flex-start;
+    background-color: #fff;
+    border: 1px solid #ddd;
+    color: #000;
+}
+
+.sent,
+.received {
+    word-wrap: break-word;
+}
+
+.message-content small {
+    display: block;
+    font-size: 10px;
+    color: gray;
+    text-align: right;
+}
+
+/* Typing Indicator */
+#typingIndicator {
+    font-size: 12px;
+    color: gray;
+    padding-left: 15px;
+}
+
+/* Message Input */
+.chat-input {
+    display: flex;
+    padding: 10px;
+    background-color: #fff;
+    border-top: 1px solid #ddd;
+}
+
+#messageInput {
+    flex: 1;
+    padding: 10px;
+    border: none;
+    border-radius: 20px;
+    outline: none;
+}
+
+#sendButton {
+    background-color: #128c7e;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    margin-left: 10px;
+    border-radius: 20px;
+    cursor: pointer;
+}
+
+/* Friends List Container */
+.friends-list {
+    background-color: #ffffff;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    max-width: 300px;
+}
+
+/* Title */
+.friends-list-title {
+    font-size: 20px;
+    color: #333333;
+    margin-bottom: 15px;
+    font-weight: 600;
+}
+
+/* Friends List Items */
+.friends-list-items {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+/* Friend Item */
+.friend-item {
+    padding: 10px;
+    border-bottom: 1px solid #eee;
+    transition: background-color 0.3s ease;
+    animation: fadeIn 0.5s ease; /* Fade-in animation */
+}
+
+.friend-item:last-child {
+    border-bottom: none;
+}
+
+.friend-item:hover {
+    background-color: #f8f9fa;
+    border-radius: 8px;
+}
+
+/* Friend Link */
+.friend-link {
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+    color: #333333;
+}
+
+/* Friend Avatar */
+.friend-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    margin-right: 10px;
+    object-fit: cover;
+}
+
+/* Friend Name */
+.friend-name {
+    font-size: 16px;
+    font-weight: 500;
+}
+
+/* Online Status Indicator */
+.online-status {
+    width: 10px;
+    height: 10px;
+    background-color: #28a745;
+    border-radius: 50%;
+    margin-left: auto;
+}
+
+/* Unread Message Count */
+.unread-count {
+    background-color: #007bff;
+    color: #ffffff;
+    font-size: 12px;
+    padding: 2px 6px;
+    border-radius: 10px;
+    margin-left: 10px;
+}
+
+/* No Chats Message */
+.no-chats {
+    text-align: center;
+    color: #6c757d;
+    font-size: 14px;
+    padding: 10px;
+}
+
+/* Fade-in Animation */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+</style>
+
+{% endblock %}
